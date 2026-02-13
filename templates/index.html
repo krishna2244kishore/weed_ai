@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Weed Detector AI</title>
+</head>
+<body style="text-align:center;margin-top:80px;font-family:Arial">
+
+<h1>🌿 Weed Detection System</h1>
+
+<input type="file" id="fileInput">
+<br><br>
+<button onclick="predict()">Predict</button>
+
+<h2 id="result"></h2>
+
+<script>
+async function predict() {
+    const file = document.getElementById("fileInput").files[0];
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const response = await fetch("/predict", {
+        method: "POST",
+        body: formData
+    });
+
+    const data = await response.json();
+
+    document.getElementById("result").innerHTML =
+        `Prediction: ${data.prediction} (${data.confidence}%)`;
+}
+</script>
+
+</body>
+</html>
