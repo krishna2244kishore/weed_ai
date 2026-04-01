@@ -3,12 +3,14 @@ import numpy as np
 from fastapi import FastAPI, File, UploadFile, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
+from fastapi.staticfiles import StaticFiles
 from PIL import Image
 import io
 
 # ---------------- APP INIT ---------------- #
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
+app.mount("/static", StaticFiles(directory="."), name="static")
 
 IMG_SIZE = 224
 

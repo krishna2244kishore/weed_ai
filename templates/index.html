@@ -1,36 +1,1034 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Weed Detector AI</title>
+
+    <!-- Modern font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg: #020617;
+            --card: #020617;
+            --card-elevated: #020617;
+            --accent: #22c55e;
+            --accent-soft: rgba(34, 197, 94, 0.18);
+            --accent-strong: #4ade80;
+            --accent-secondary: #38bdf8;
+            --text: #ffffff;
+            --muted: #d1d5db;
+            --border: rgba(148, 163, 184, 0.35);
+            --danger: #f97373;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: "Outfit", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            color: var(--text);
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8), 0 0 10px rgba(0, 0, 0, 0.5);
+            background:
+                /* radial-gradient(circle at top left, rgba(56, 189, 248, 0.16), transparent 55%),
+                radial-gradient(circle at bottom right, rgba(34, 197, 94, 0.22), transparent 52%),
+                linear-gradient(to bottom, rgba(15, 23, 42, 0.68), rgba(15, 23, 42, 0.94)), */
+                url("/static/background.png") center / cover no-repeat fixed; 
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+
+        .bg-dots {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .bg-dot {
+            position: absolute;
+            width: 14px;
+            height: 14px;
+            border-radius: 999px;
+            background: radial-gradient(circle at 30% 0, rgba(56, 189, 248, 0.9), transparent 65%);
+            opacity: 0.55;
+            filter: blur(0.5px);
+        }
+
+        .bg-dot--1 {
+            top: 18%;
+            left: 12%;
+            animation: float1 26s ease-in-out infinite alternate;
+        }
+
+        .bg-dot--2 {
+            top: 68%;
+            left: 28%;
+            background: radial-gradient(circle at 30% 0, rgba(34, 197, 94, 0.9), transparent 65%);
+            animation: float2 30s ease-in-out infinite alternate;
+        }
+
+        .bg-dot--3 {
+            top: 32%;
+            right: 14%;
+            animation: float3 32s ease-in-out infinite alternate;
+        }
+
+        @keyframes float1 {
+            0% { transform: translate3d(0, 0, 0); opacity: 0.4; }
+            100% { transform: translate3d(40px, -30px, 0); opacity: 0.9; }
+        }
+
+        @keyframes float2 {
+            0% { transform: translate3d(0, 0, 0); opacity: 0.35; }
+            100% { transform: translate3d(-30px, -20px, 0); opacity: 0.85; }
+        }
+
+        @keyframes float3 {
+            0% { transform: translate3d(0, 0, 0); opacity: 0.4; }
+            100% { transform: translate3d(20px, 30px, 0); opacity: 0.85; }
+        }
+
+        .shell {
+            width: 100%;
+            max-width: 1100px;
+            display: grid;
+            grid-template-columns: minmax(0, 1.25fr) minmax(260px, 0.95fr);
+            gap: 22px;
+            position: relative;
+            z-index: 1;
+            filter: drop-shadow(0 32px 60px rgba(15, 23, 42, 0.9));
+        }
+
+        @media (max-width: 900px) {
+            .shell {
+                grid-template-columns: minmax(0, 1fr);
+            }
+        }
+
+       .card {
+            position: relative;
+            border-radius: 16px;
+            padding: 24px;
+            background: rgba(15, 23, 42, 0.32);
+            border: 1px solid rgba(148, 163, 184, 0.26);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            box-shadow: 
+                0 3px 16px rgba(0, 0, 0, 0.15),
+                inset 0 1px 0 rgba(255, 255, 255, 0.03);
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .card::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: 16px;
+            background:
+                radial-gradient(circle at top left, rgba(56, 189, 248, 0.18), transparent 55%),
+                radial-gradient(circle at bottom right, rgba(34, 197, 94, 0.20), transparent 52%),
+                linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, transparent 100%);
+            opacity: 1;
+            z-index: 0;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow:
+                0 10px 32px rgba(15, 23, 42, 0.9),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            border-color: rgba(148, 163, 184, 0.4);
+        }
+
+        .card-inner {
+            position: relative;
+            z-index: 1;
+        }
+
+        .card-inner h1, .card-inner h2, .card-inner h3, .card-inner .brand-title {
+            color: #ffffff;
+            font-weight: 600;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8), 0 0 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .card-inner p, .card-inner .subtitle, .card-inner .upload-description, .card-inner .result-sub {
+            color: #f3f4f6;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9), 0 0 10px rgba(0, 0, 0, 0.4);
+        }
+
+        .card-inner .upload-label, .card-inner .result-label, .card-inner .brand-sub {
+            color: #e5e7eb;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9);
+        }
+
+        .card-inner .upload-title, .card-inner .result-name {
+            color: #ffffff;
+            font-weight: 500;
+            text-shadow: 0 2px 3px rgba(0, 0, 0, 0.9), 0 0 15px rgba(0, 0, 0, 0.4);
+        }
+
+        .inner-card {
+            background: rgba(15, 23, 42, 0.05);
+            border-radius: 12px;
+            padding: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.005);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            box-shadow: 
+                0 0px 1px rgba(0, 0, 0, 0.02),
+                inset 0 1px 0 rgba(255, 255, 255, 0.002);
+            transition: all 0.2s ease;
+        }
+
+        .inner-card * {
+            color: #ffffff !important;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9), 0 0 12px rgba(0, 0, 0, 0.6) !important;
+        }
+
+        .inner-card:hover {
+            transform: translateY(-1px);
+            box-shadow: 
+                0 0.5px 2px rgba(0, 0, 0, 0.03),
+                inset 0 1px 0 rgba(255, 255, 255, 0.005);
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand-logo-round {
+            flex-shrink: 0;
+            width: 58px;
+            height: 58px;
+            border-radius: 50%;
+            overflow: hidden;
+        }
+
+        .brand-logo {
+            display: block;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.4));
+            transition: filter 0.3s ease, transform 0.3s ease;
+        }
+
+        .brand-logo-round:hover .brand-logo {
+            filter: drop-shadow(0 3px 10px rgba(0, 0, 0, 0.45));
+            transform: scale(1.03);
+        }
+
+        .brand-title {
+            display: inline-flex;
+            align-items: baseline;
+            gap: 10px;
+            font-size: clamp(20px, 2.8vw, 30px);
+            font-weight: 700;
+            letter-spacing: 0.03em;
+            line-height: 1.05;
+            filter: drop-shadow(0 4px 16px rgba(0, 0, 0, 0.9));
+        }
+
+        .brand-title-main {
+            background: linear-gradient(135deg, #bbf7d0, #4ade80, #22c55e, #16a34a);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow:
+                0 0 12px rgba(22, 163, 74, 0.55),
+                0 0 26px rgba(21, 128, 61, 0.9);
+        }
+
+        .brand-title-accent {
+            background: linear-gradient(135deg, #e2e8f0, #bfdbfe, #60a5fa, #38bdf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            position: relative;
+            text-shadow:
+                0 0 12px rgba(59, 130, 246, 0.6),
+                0 0 26px rgba(56, 189, 248, 0.9);
+        }
+
+        /* underline removed per request */
+
+        .brand-sub {
+            font-size: 11px;
+            color: var(--muted);
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+        }
+
+        .pill {
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: 1px solid rgba(52, 211, 153, 0.4);
+            background: rgba(34, 197, 94, 0.1);
+            backdrop-filter: blur(10px);
+            font-size: 12px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: #22c55e;
+            transition: all 0.2s ease;
+        }
+
+        .pill:hover {
+            background: rgba(34, 197, 94, 0.15);
+            border-color: rgba(52, 211, 153, 0.6);
+            transform: translateY(-1px);
+        }
+
+        .pill-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #22c55e;
+            box-shadow: 0 0 10px rgba(34, 197, 94, 0.6);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.8;
+                transform: scale(1.1);
+            }
+        }
+
+        .subtitle {
+            margin-top: 2px;
+            font-size: 13px;
+            color: var(--muted);
+            line-height: 1.7;
+        }
+
+        .subtitle strong {
+            color: var(--accent-strong);
+            font-weight: 500;
+        }
+
+        .layout-main {
+            margin-top: 18px;
+            display: grid;
+            grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.9fr);
+            gap: 18px;
+        }
+
+        @media (max-width: 900px) {
+            .layout-main {
+                grid-template-columns: minmax(0, 1fr);
+            }
+        }
+
+        .upload-area {
+            border-radius: 18px;
+            padding: 16px 16px 14px;
+            background: rgba(15, 23, 42, 0.05);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            box-shadow: 
+                0 0px 1px rgba(0, 0, 0, 0.02),
+                inset 0 1px 0 rgba(255, 255, 255, 0.002);
+            transition: all 0.2s ease;
+        }
+
+        .upload-area:hover {
+            background: rgba(15, 23, 42, 0.09);
+            border-color: rgba(148, 163, 184, 0.3);
+        }
+
+        .upload-label {
+            font-size: 11px;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--muted);
+        }
+
+        .upload-title {
+            margin-top: 2px;
+            font-size: 17px;
+            font-weight: 600;
+        }
+
+        .upload-description {
+            margin-top: 6px;
+            font-size: 13px;
+            color: var(--muted);
+        }
+
+        .upload-controls {
+            margin-top: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .btn-primary,
+        .btn-ghost {
+            border-radius: 999px;
+            padding: 9px 16px;
+            font-size: 13px;
+            font-weight: 500;
+            border: none;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: transparent;
+            color: var(--text);
+            transition: transform 120ms ease, box-shadow 120ms ease, background 120ms ease, color 120ms ease;
+        }
+
+        .btn-primary {
+            background: radial-gradient(circle at 0 0, #4ade80 0, #22c55e 50%, #16a34a 90%);
+            color: #022c22;
+            box-shadow:
+                0 0 0 1px rgba(22, 163, 74, 0.9),
+                0 12px 32px rgba(22, 163, 74, 0.9);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow:
+                0 0 0 1px rgba(22, 163, 74, 1),
+                0 18px 42px rgba(21, 128, 61, 1);
+        }
+
+        .btn-ghost {
+            border: 1px solid rgba(148, 163, 184, 0.55);
+            background: rgba(15, 23, 42, 0.75);
+        }
+
+        .btn-ghost:hover {
+            background: rgba(15, 23, 42, 0.9);
+            border-color: rgba(148, 163, 184, 0.8);
+        }
+
+        .file-input {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .file-input input[type="file"] {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .file-pill {
+            font-size: 12px;
+            padding: 6px 10px;
+            border-radius: 999px;
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(148, 163, 184, 0.55);
+            color: #d1d5db;
+            max-width: 200px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .preview-card {
+            border-radius: 18px;
+            padding: 12px;
+            background: rgba(15, 23, 42, 0.05);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            box-shadow: 
+                0 0px 1px rgba(0, 0, 0, 0.02),
+                inset 0 1px 0 rgba(255, 255, 255, 0.002);
+            min-height: 170px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            transition: all 0.2s ease;
+        }
+
+        .preview-card:hover {
+            background: rgba(15, 23, 42, 0.09);
+            border-color: rgba(148, 163, 184, 0.3);
+        }
+
+        .preview-chip {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.14em;
+            padding: 4px 9px;
+            border-radius: 999px;
+            border: 1px solid rgba(148, 163, 184, 0.65);
+            background: rgba(15, 23, 42, 0.88);
+            color: var(--muted);
+        }
+
+        .preview-image {
+            max-width: 100%;
+            max-height: 170px;
+            object-fit: cover;
+            border-radius: 12px;
+            box-shadow:
+                0 0 0 1px rgba(15, 23, 42, 0.9),
+                0 28px 50px rgba(15, 23, 42, 0.98);
+        }
+
+        .preview-placeholder {
+            font-size: 13px;
+            color: var(--muted);
+            text-align: center;
+            padding: 0 10px;
+        }
+
+        .side-card {
+            border-radius: 20px;
+            padding: 16px 16px 12px;
+            background: rgba(15, 23, 42, 0.05);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            box-shadow: 
+                0 0px 1px rgba(0, 0, 0, 0.02),
+                inset 0 1px 0 rgba(255, 255, 255, 0.002);
+            transition: all 0.2s ease;
+        }
+
+        .side-card:hover {
+            background: rgba(15, 23, 42, 0.09);
+            border-color: rgba(148, 163, 184, 0.3);
+        }
+
+        .metric-row {
+            display: grid;
+            grid-template-columns: auto minmax(0, 1fr);
+            gap: 12px;
+            align-items: center;
+        }
+
+        .metric-circle {
+            width: 66px;
+            height: 66px;
+            border-radius: 999px;
+            background:
+                radial-gradient(circle at 30% 0, rgba(191, 219, 254, 0.9), transparent 70%),
+                conic-gradient(var(--accent-secondary) 0, rgba(15, 23, 42, 0.95) 0);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .metric-circle-inner {
+            width: 74%;
+            height: 74%;
+            border-radius: 999px;
+            background: radial-gradient(circle at 30% 0, #020617, #020617);
+            border: 1px solid rgba(148, 163, 184, 0.75);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .metric-title {
+            font-size: 13px;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: #d1d5db;
+        }
+
+        .metric-main {
+            margin-top: 4px;
+            font-size: 17px;
+            font-weight: 600;
+        }
+
+        .metric-sub {
+            margin-top: 3px;
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .badges-row {
+            margin-top: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            font-size: 11px;
+            color: var(--muted);
+        }
+
+        .badge {
+            padding: 3px 8px;
+            border-radius: 999px;
+            border: 1px solid rgba(148, 163, 184, 0.7);
+            background: rgba(15, 23, 42, 0.88);
+            text-transform: uppercase;
+            letter-spacing: 0.14em;
+        }
+
+        .badge.accent {
+            border-color: rgba(52, 211, 153, 0.9);
+            color: var(--accent-strong);
+        }
+
+        .badge-dot {
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            border-radius: 999px;
+            margin-right: 5px;
+            background: radial-gradient(circle at 30% 0, #fecaca, #f97373);
+            box-shadow: 0 0 10px rgba(248, 113, 113, 0.9);
+        }
+
+        .result-block {
+            margin-top: 12px;
+            border-radius: 16px;
+            padding: 10px 11px 9px;
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            background: rgba(15, 23, 42, 0.05);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            box-shadow: 
+                0 0px 1px rgba(0, 0, 0, 0.02),
+                inset 0 1px 0 rgba(255, 255, 255, 0.002);
+            transition: all 0.2s ease;
+        }
+
+        .result-block:hover {
+            background: rgba(15, 23, 42, 0.09);
+            border-color: rgba(148, 163, 184, 0.3);
+        }
+
+        .result-label {
+            font-size: 11px;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: var(--muted);
+        }
+
+        .result-name {
+            margin-top: 4px;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .result-sub {
+            margin-top: 3px;
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .result-meta {
+            margin-top: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            gap: 10px;
+            font-size: 12px;
+        }
+
+        .result-score {
+            text-align: right;
+        }
+
+        .result-score-main {
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        @keyframes pop {
+            0% {
+                transform: scale(1);
+            }
+            45% {
+                transform: scale(1.03);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .result-block--pulse {
+            animation: pop 420ms cubic-bezier(0.22, 0.61, 0.36, 1);
+        }
+
+        .metric-circle--pulse {
+            animation: pop 420ms cubic-bezier(0.22, 0.61, 0.36, 1);
+        }
+
+        .log {
+            margin-top: 8px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            font-size: 11px;
+            color: var(--muted);
+            background: rgba(15, 23, 42, 0.55);
+            border-radius: 10px;
+            border: 1px solid rgba(148, 163, 184, 0.4);
+            padding: 8px 10px;
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            max-height: 80px;
+            overflow-y: auto;
+        }
+
+        .log-line + .log-line {
+            margin-top: 2px;
+        }
+
+        .log-line--error {
+            color: var(--danger);
+        }
+
+        .footer {
+            margin-top: 10px;
+            font-size: 11px;
+            color: #6b7280;
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+        }
+    </style>
 </head>
-<body style="text-align:center;margin-top:80px;font-family:Arial">
+<body>
+    <div class="bg-dots">
+        <div class="bg-dot bg-dot--1"></div>
+        <div class="bg-dot bg-dot--2"></div>
+        <div class="bg-dot bg-dot--3"></div>
+    </div>
+    <main class="shell">
+        <section class="card">
+            <div class="card-inner">
+                <header class="header">
+                    <div>
+                        <div class="brand">
+                            <div class="brand-logo-round"><img class="brand-logo" src="/static/logo.svg" alt="WeedNet Vision" /></div>
+                            <div>
+                                <div class="brand-title" aria-label="WeedNet Vision">
+                                    <span class="brand-title-main">WeedNet</span>
+                                    <span class="brand-title-accent">Vision</span>
+                                </div>
+                                <div class="brand-sub">Smart farm weed detection</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="pill">
+                        <span class="pill-dot"></span>
+                        Live model · v1
+                    </div>
+                </header>
 
-<h1>🌿 Weed Detection System</h1>
+                <p class="subtitle">
+                    Upload a field image to let <strong>Weed Detector AI</strong> identify the dominant weed species and return a calibrated confidence score.
+                </p>
 
-<input type="file" id="fileInput">
-<br><br>
-<button onclick="predict()">Predict</button>
+                <div class="layout-main">
+                    <div class="upload-area">
+                        <div class="upload-label">Acquisition</div>
+                        <div class="upload-title">Upload a crop field image</div>
+                        <p class="upload-description">
+                            Choose or drag &amp; drop a photo from your field. For best results, keep the target weed centered and in focus.
+                        </p>
 
-<h2 id="result"></h2>
+                        <div class="upload-controls">
+                            <div class="file-input">
+                                <button class="btn-ghost" type="button">Choose image</button>
+                                <input id="fileInput" type="file" accept="image/*" />
+                            </div>
+                            <button id="predictButton" class="btn-primary" type="button">
+                                Run detection
+                            </button>
+                            <div id="fileName" class="file-pill">No file selected</div>
+                        </div>
+                    </div>
 
-<script>
-async function predict() {
-    const file = document.getElementById("fileInput").files[0];
+                    <div class="preview-card">
+                        <div class="preview-chip">Field preview</div>
+                        <img id="previewImage" class="preview-image" alt="Selected image preview" style="display:none;" />
+                        <div id="previewPlaceholder" class="preview-placeholder">
+                            Preview of your field image will appear here after you select a file.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-    const formData = new FormData();
-    formData.append("file", file);
+        <aside class="card">
+            <div class="card-inner">
+                <div class="side-card">
+                    <div class="metric-row">
+                        <div class="metric-circle" id="confidenceRing">
+                            <div class="metric-circle-inner" id="confidenceValue">—</div>
+                        </div>
+                        <div>
+                            <div class="metric-title">Detection confidence</div>
+                            <div id="statusText" class="metric-main">Awaiting sample</div>
+                            <div id="statusSub" class="metric-sub">
+                                Upload an image and run detection to start an inference.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="badges-row">
+                        <div id="badgeState" class="badge accent">
+                            <span class="pill-dot" style="width:6px;height:6px;margin-right:5px;"></span>Idle
+                        </div>
+                        <div class="badge">
+                            <span class="badge-dot"></span>FastAPI · TensorFlow
+                        </div>
+                    </div>
+                </div>
 
-    const response = await fetch("/predict", {
-        method: "POST",
-        body: formData
-    });
+                <div class="result-block">
+                    <div class="result-label">Detected weed species</div>
+                    <div id="resultName" class="result-name">No prediction yet</div>
+                    <div id="resultSubtitle" class="result-sub">
+                        When a prediction is available, the common and scientific name will appear here.
+                    </div>
+                    <div class="result-meta">
+                        <div>
+                            <div id="resultHint" class="result-sub">
+                                Model covers 16 common weed classes.
+                            </div>
+                        </div>
+                        <div class="result-score">
+                            <div id="resultConfidence" class="result-score-main">—</div>
+                            <div id="resultConfidenceSub" class="result-sub">0–100% certainty</div>
+                        </div>
+                    </div>
+                </div>
 
-    const data = await response.json();
+                <div id="logArea" class="log">
+                    <div class="log-line">[system] Ready. Waiting for first inference…</div>
+                </div>
 
-    document.getElementById("result").innerHTML =
-        `Prediction: ${data.prediction} (${data.confidence}%)`;
-}
-</script>
+                <div class="footer">
+                    <span>Designed for agronomists &amp; growers.</span>
+                    <span>WeedNet · experimental build.</span>
+                </div>
+            </div>
+        </aside>
+    </main>
 
+    <script>
+        const fileInput = document.getElementById("fileInput");
+        const fileNameLabel = document.getElementById("fileName");
+        const previewImage = document.getElementById("previewImage");
+        const previewPlaceholder = document.getElementById("previewPlaceholder");
+        const predictButton = document.getElementById("predictButton");
+        const resultName = document.getElementById("resultName");
+        const resultSubtitle = document.getElementById("resultSubtitle");
+        const resultHint = document.getElementById("resultHint");
+        const resultConfidence = document.getElementById("resultConfidence");
+        const resultConfidenceSub = document.getElementById("resultConfidenceSub");
+        const confidenceRing = document.getElementById("confidenceRing");
+        const confidenceValue = document.getElementById("confidenceValue");
+        const statusText = document.getElementById("statusText");
+        const statusSub = document.getElementById("statusSub");
+        const badgeState = document.getElementById("badgeState");
+        const logArea = document.getElementById("logArea");
+        const resultBlock = document.querySelector(".result-block");
+
+        let confidenceAnimationFrame = null;
+        let currentConfidence = 0;
+
+        function pushLog(message, isError = false) {
+            const line = document.createElement("div");
+            line.className = "log-line" + (isError ? " log-line--error" : "");
+            const now = new Date();
+            const time = now.toLocaleTimeString(undefined, { hour12: false });
+            line.textContent = "[" + time + "] " + message;
+            logArea.appendChild(line);
+            logArea.scrollTop = logArea.scrollHeight;
+        }
+
+        function setStateIdle() {
+            statusText.textContent = "Awaiting sample";
+            statusSub.textContent = "Upload an image and run detection to start an inference.";
+            badgeState.innerHTML = '<span class="pill-dot" style="width:6px;height:6px;margin-right:5px;"></span>Idle';
+        }
+
+        function setStateRunning() {
+            statusText.textContent = "Running detection…";
+            statusSub.textContent = "Uploading image and querying TensorFlow model.";
+            badgeState.innerHTML =
+                '<span class="pill-dot" style="width:6px;height:6px;margin-right:5px;background: radial-gradient(circle at 30% 0, #bae6fd, #38bdf8);box-shadow: 0 0 10px rgba(56, 189, 248, 0.9);"></span>In progress';
+        }
+
+        function setStateError() {
+            statusText.textContent = "Inference failed";
+            statusSub.textContent = "Check your image and network connection, then try again.";
+            badgeState.innerHTML = '<span class="badge-dot"></span>Error';
+        }
+
+        function updateConfidenceRing(conf) {
+            const pctTarget = Math.max(0, Math.min(conf || 0, 100));
+            const start = currentConfidence;
+            const end = pctTarget;
+            const duration = 700;
+            const startTime = performance.now();
+
+            if (confidenceAnimationFrame) {
+                cancelAnimationFrame(confidenceAnimationFrame);
+            }
+
+            function frame(now) {
+                const t = Math.min(1, (now - startTime) / duration);
+                const eased = 1 - Math.pow(1 - t, 3);
+                const value = start + (end - start) * eased;
+
+                confidenceRing.style.background =
+                    "radial-gradient(circle at 30% 0, rgba(191, 219, 254, 0.9), transparent 70%)," +
+                    "conic-gradient(" + getComputedStyle(document.documentElement).getPropertyValue('--accent-secondary') + " " +
+                    value + "%, rgba(15, 23, 42, 0.96) 0)";
+                confidenceValue.textContent = value ? value.toFixed(0) + "%" : "—";
+
+                if (t < 1) {
+                    confidenceAnimationFrame = requestAnimationFrame(frame);
+                } else {
+                    currentConfidence = end;
+                    confidenceAnimationFrame = null;
+                }
+            }
+
+            requestAnimationFrame(frame);
+        }
+
+        function playDetectionMicroInteraction() {
+            if (!resultBlock) return;
+            resultBlock.classList.remove("result-block--pulse");
+            confidenceRing.classList.remove("metric-circle--pulse");
+
+            // force reflow to restart animation
+            void resultBlock.offsetWidth;
+            void confidenceRing.offsetWidth;
+
+            resultBlock.classList.add("result-block--pulse");
+            confidenceRing.classList.add("metric-circle--pulse");
+        }
+
+        fileInput.addEventListener("change", () => {
+            const file = fileInput.files[0];
+            if (!file) {
+                fileNameLabel.textContent = "No file selected";
+                previewImage.style.display = "none";
+                previewPlaceholder.style.display = "block";
+                setStateIdle();
+                return;
+            }
+
+            fileNameLabel.textContent = file.name;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                previewImage.src = e.target.result;
+                previewImage.style.display = "block";
+                previewPlaceholder.style.display = "none";
+            };
+            reader.readAsDataURL(file);
+
+            pushLog("Image selected: " + file.name);
+            setStateIdle();
+        });
+
+        async function predict() {
+            const file = fileInput.files[0];
+            if (!file) {
+                pushLog("No file selected. Prediction aborted.", true);
+                alert("Please select an image before running detection.");
+                return;
+            }
+
+            setStateRunning();
+            pushLog("Sending image to /predict…");
+
+            const formData = new FormData();
+            formData.append("file", file);
+
+            try {
+                const response = await fetch("/predict", {
+                    method: "POST",
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    throw new Error("Server returned status " + response.status);
+                }
+
+                const data = await response.json();
+                const confidence = Number(data.confidence) || 0;
+                const prediction = data.prediction || "Unknown weed species";
+
+                resultName.textContent = prediction;
+                resultSubtitle.textContent = "Prediction generated by WeedNet TensorFlow SavedModel.";
+                resultHint.textContent = "Model confidence updated for this capture.";
+                resultConfidence.textContent = confidence.toFixed(2) + "%";
+                resultConfidenceSub.textContent =
+                    confidence >= 70
+                        ? "High certainty classification"
+                        : confidence >= 40
+                        ? "Moderate certainty · consider another angle"
+                        : "Low certainty · retake closer to the plant";
+
+                updateConfidenceRing(confidence);
+
+                playDetectionMicroInteraction();
+
+                statusText.textContent = "Detection complete";
+                statusSub.textContent = "Review the predicted species and score.";
+                badgeState.innerHTML =
+                    '<span class="pill-dot" style="width:6px;height:6px;margin-right:5px;"></span>Ready for next image';
+
+                pushLog("Prediction: " + prediction + " (" + confidence.toFixed(2) + "%)");
+            } catch (err) {
+                console.error(err);
+                setStateError();
+                updateConfidenceRing(0);
+                resultName.textContent = "Prediction unavailable";
+                resultSubtitle.textContent = "The model could not complete this inference.";
+                resultHint.textContent = "Check logs below and try again.";
+                resultConfidence.textContent = "—";
+                resultConfidenceSub.textContent = "0–100% certainty";
+                pushLog("Prediction failed: " + err.message, true);
+            }
+        }
+
+        predictButton.addEventListener("click", predict);
+        setStateIdle();
+        updateConfidenceRing(0);
+    </script>
 </body>
 </html>
